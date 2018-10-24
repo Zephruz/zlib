@@ -4,16 +4,16 @@
 ]]
 
 --[[Load zlib Base]]
-AddCSLuaFile("sh_includes.lua")
 AddCSLuaFile("sh_util.lua")
+AddCSLuaFile("sh_includes.lua")
 AddCSLuaFile("sh_object.lua")
 AddCSLuaFile("sh_cache.lua")
 AddCSLuaFile("sh_data.lua")
 AddCSLuaFile("sh_cmds.lua")
 AddCSLuaFile("networking/sh_networking.lua")
 
-include("sh_includes.lua")
 include("sh_util.lua")
+include("sh_includes.lua")
 include("sh_object.lua")
 include("sh_cache.lua")
 include("sh_data.lua")

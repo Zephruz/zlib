@@ -54,14 +54,21 @@ end
 local function findChatCommand(msg, cmd)
 	if (!msg or !cmd) then return false end
 
-	local sP, eP, strF = msg:find(cmd, 1, true)
+	local args = msg:Split(" ")
+	local argCmd = (args && args[1])
 
+	if (argCmd && cmd == argCmd) then
+		return args
+	end
+
+	--[[local sP, eP, strF = msg:find(cmd, 1, true)
+	
 	if (sP && sP == 1 or eP && eP == #cmd) then
 		-- local noCmd = msg:Replace(cmd, "")
 		local args = msg:Split(" ")
 
 		return args
-	end
+	end]]
 
 	return false
 end

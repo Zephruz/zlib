@@ -170,16 +170,16 @@ function objMeta:setData(name, val, params)
 		end
 
 		self[OMETA_DTNAME][name] = (val or false)
-
+		
 		if (isfunction(postSet)) then postSet(self, val, oldVal, ...) end
-
-		if (shouldSave) then
-			self:saveData()
-		end
 
 		-- OnSet obj
 		if (isfunction(self.onSetData)) then
 			self:onSetData(name, val, ...)
+		end
+		
+		if (shouldSave) then
+			self:saveData()
 		end
 
 		return val

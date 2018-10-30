@@ -81,3 +81,23 @@ function zlib.util:IncludeByPath(fName, fPath)
 
 	include(path)
 end
+
+--[[
+	zlib.util:DrawBlur()
+
+	- Draws blur on the passed panel
+]]
+local blurMat = Material("pp/blurscreen")
+
+function zlib.util:DrawBlur(panel,w,h,amt)
+	local x, y = panel:LocalToScreen(0, 0)
+	surface.SetDrawColor(0,0,0,255)
+	surface.SetMaterial(blurMat)
+
+	for i = 1, 4 do
+		blurMat:SetFloat("$blur", (i / 3) * (amt or 6))
+		blurMat:Recompute()
+		render.UpdateScreenEffectTexture()
+		surface.DrawTexturedRect(x * -1, y * -1, ScrW(), ScrH())
+	end
+end

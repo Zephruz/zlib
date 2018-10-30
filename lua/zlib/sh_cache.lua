@@ -159,8 +159,8 @@ end
 
 cacheMeta:setData("Name", "NIL", {shouldSave = false})
 cacheMeta:setData("Description", "NIL", {shouldSave = false})
-cacheMeta:setData("Entries", {}, {shouldSave = false})
 cacheMeta:setData("ClearOnReload", false, {shouldSave = false})
+cacheMeta:setData("Entries", {}, {shouldSave = false})
 
 cacheMeta.__index = cacheMeta
 

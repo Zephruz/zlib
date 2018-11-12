@@ -101,3 +101,38 @@ function zlib.util:DrawBlur(panel,w,h,amt)
 		surface.DrawTexturedRect(x * -1, y * -1, ScrW(), ScrH())
 	end
 end
+
+--[[--------------------------
+	ICON SETS
+	THANKS THREEBALLS
+	http://threebow.com
+----------------------------]]
+local function downloadFile(filename, url, callback, errorCallback)
+    local path = "threebow/downloads/" .. filename
+    local dPath = "data/" .. path
+
+    if(file.Exists(path, "DATA")) then return callback(dPath) end
+    if(!file.IsDir(string.GetPathFromFilename(path), "DATA")) then file.CreateDir(string.GetPathFromFilename(path)) end
+
+    errorCallback = errorCallback || function(reason)
+        error("zlib: File download failed ("..url..") ("..reason..")")
+    end
+
+    http.Fetch(url, function(body, size, headers, code)
+        if(code != 200) then return errorCallback(code) end
+        file.Write(path, body)
+        callback(dPath)
+    end, errorCallback)
+end
+
+function zlib.util:IconSet(iconUrls, path)
+    local set = {}
+    
+    for name, url in pairs(iconUrls) do
+        downloadFile((path || "")..util.CRC(name..url).."."..string.GetExtensionFromFilename(url), url, function(path)
+            set[name] = Material(path, "unlitgeneric")
+        end)
+    end
+
+    return set
+end

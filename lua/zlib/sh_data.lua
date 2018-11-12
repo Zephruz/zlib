@@ -3,7 +3,7 @@
     Developed by Zephruz
 ]]
 
-zlib.data = {}
+zlib.data = (zlib.data or {})
 zlib.data.types = (zlib.data.types or {})
 zlib.data._connections = (zlib.data._connections or {})
 

@@ -102,6 +102,35 @@ function zlib.util:DrawBlur(panel,w,h,amt)
 	end
 end
 
+--[[
+	zlib.util:OpenURL(url [string], ply [player or table of players])
+
+	- Opens a url (clientside) or opens a url for the specified player (serverside)
+]]
+function zlib.util:OpenURL(url, ply)
+	if (CLIENT) then
+		gui.OpenURL(url)
+	elseif (ply) then
+		netPoint:SendCompressedNetMessage("zlib.util.functionRequest", ply, {
+			func = "OpenURL", 
+			args = {url},
+		})
+	end
+end
+
+--[[
+	zlib.util:GetTextSize(text [string], font [string])
+
+	- Returns the size of the text
+]]
+function zlib.util:GetTextSize(text, font)
+	if !(CLIENT) then return false end
+
+	surface.SetFont(font or "DermaDefault")
+
+    return surface.GetTextSize(text)
+end
+
 --[[--------------------------
 	ICON SETS
 	THANKS THREEBALLS
@@ -135,4 +164,27 @@ function zlib.util:IconSet(iconUrls, path)
     end
 
     return set
+end
+
+--[[
+	Networking
+]]
+if (SERVER) then
+	util.AddNetworkString("zlib.util.functionRequest")
+end
+
+if (CLIENT) then
+	net.Receive("zlib.util.functionRequest",
+	function()
+		local data, dataBInt = netPoint:DecompressNetData()
+
+		if !(data) then return end
+		
+		local func, args = data.func, data.args
+		func = zlib.util[func]
+		
+		if !(func) then return end
+
+		func(zlib.util, unpack(args))
+	end)
 end

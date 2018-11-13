@@ -57,13 +57,12 @@ if (CLIENT) then
         newNotif.icon = (icon && Material(icon) || false)
         newNotif.delAt = (os.time() + self.length)
         newNotif.curPos = {x = -200, y = self.position.y}
-        
-        -- [[notification size]]
-        newNotif.size = {}
-        newNotif.size.w = self.size.w
-        newNotif.size.h = self.size.h
+        newNotif.size = {w = self.size.w, h = self.size.h}
         
         table.insert(notifications, newNotif)
+
+        -- Chat text
+        chat.AddText(Color(255,255,255), msg)
     end
 
     local function removeNotification(id)

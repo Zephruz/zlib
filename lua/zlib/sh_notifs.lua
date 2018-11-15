@@ -74,7 +74,7 @@ if (CLIENT) then
     --[[HOOKS]]
     hook.Add("zlib.notifs.Receive", "zlib.notifs.Receive[zlib.notifs.Receive]", 
     function(...)
-        MG2_NOTIFICATIONS:Create({...})
+        zlib.notifs:Create({...})
     end)
 
     hook.Add("DrawOverlay", "zlib.notifs[DrawOverlay]",

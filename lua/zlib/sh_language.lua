@@ -129,7 +129,7 @@ langMtbl:setData("Translations", {}, {
 
 		local trans = (val[tname] or tname)
 
-		return string.format(trans, ...)
+		return (#{...} > 0 && string.format(trans,...) || trans)
 	end
 })
 

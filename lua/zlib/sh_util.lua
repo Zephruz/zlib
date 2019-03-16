@@ -131,6 +131,43 @@ function zlib.util:GetTextSize(text, font)
     return surface.GetTextSize(text)
 end
 
+--[[
+	zlib.util:ContainsProfanity(text [string], callback [function], filter [table (OPTIONAL)], useApi [boolean (OPTIONAL)])
+
+	- Checks if text contains profanity
+]]
+function zlib.util:ContainsProfanity(text, callback, filter, useApi)
+	if (istable(filter)) then
+		for k,v in pairs(filter) do
+			local sPos, ePos, mStr = string.find(text, v)
+
+			if (sPos) then
+				if (callback) then callback(true) end
+
+				return true
+			end
+		end
+	end
+	
+	if (useApi == false) then 
+		if (callback) then callback(false) end
+
+		return false 
+	end
+
+	zlib.http:Get("https://www.purgomalum.com/service/containsprofanity?text=" .. http.URLEncode(text),
+	function(...)
+		local data = {...}
+		local result = (istable(data) && data[1])
+		local hasProf = (result && result == "true")
+
+		if (callback) then callback(hasProf) end
+	end,
+	function(...)
+		if (callback) then callback(false) end
+	end)
+end
+
 --[[--------------------------
 	ICON SETS
 	THANKS THREEBALLS

@@ -69,3 +69,19 @@ function zlib.http:Request(method, url, body, onSuccess, onFail)
 
     HTTP(structure)
 end
+
+--[[
+    zlib.http:Get(url [string], onSuccess [function (OPTIONAL)], onFail [function (OPTIONAL)], headers [table (OPTIONAL)])
+
+    - Makes an http GET Request
+]]
+function zlib.http:Get(url, onSuccess, onFail, headers)
+    http.Fetch(url, 
+    function(...)
+        if (onSuccess) then onSuccess(...) end
+    end, 
+    function(...)
+        if (onFail) then onFail(...) end
+    end, 
+    headers)
+end

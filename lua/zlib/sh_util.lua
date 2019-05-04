@@ -6,6 +6,25 @@
 zlib.util = (zlib.util or {})
 
 --[[
+	zlib.util:GetPlayerBySteamID(steamid [string])
+
+	- Gets player by SteamID
+		* Works for bots; only returns the first bot found
+	- Works for both STID & STID64
+]]
+function zlib.util:GetPlayerBySteamID(steamid)
+	local ply = (player.GetBySteamID(steamid) || player.GetBySteamID64(steamid))
+
+	if (steamid == "BOT") then
+		for k,v in pairs(player.GetBots()) do
+			return v
+		end
+	end
+
+	return ply
+end
+
+--[[
 	zlib.util:FormatNumber(number [int])
 
 	- Formats a number with
@@ -219,7 +238,7 @@ if (CLIENT) then
 		
 		local func, args = data.func, data.args
 		func = zlib.util[func]
-		
+
 		if !(func) then return end
 
 		func(zlib.util, unpack(args))

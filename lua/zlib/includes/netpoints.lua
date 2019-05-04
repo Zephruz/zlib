@@ -71,6 +71,8 @@ local function rebuildSplitTable(inTbl)
 	local outTbl = {}
 
 	for i=1,#inTbl do
+		if !(istable(inTbl[i])) then continue end
+		
 		for k,v in pairs(inTbl[i]) do
 			outTbl[k] = v
 		end

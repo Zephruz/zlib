@@ -46,7 +46,7 @@ function zlib.cache:Register(name, data)
 	-- Register cache
 	self._caches[name] = {}
 
-	setmetatable(self._caches[name], self:GetMetaTable())
+	zlib.object:SetMetatable("zlib.CacheMeta", self._caches[name])
 
 	if (data) then
 		for k,v in pairs(data) do
@@ -161,8 +161,6 @@ cacheMeta:setData("Name", "NIL", {shouldSave = false})
 cacheMeta:setData("Description", "NIL", {shouldSave = false})
 cacheMeta:setData("ClearOnReload", false, {shouldSave = false})
 cacheMeta:setData("Entries", {}, {shouldSave = false})
-
-cacheMeta.__index = cacheMeta
 
 --[[
 	Networking

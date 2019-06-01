@@ -13,7 +13,7 @@ zlib.lang = (zlib.lang or {})
 function zlib.lang:SetupLanguage(name)
 	local lang = {}
 
-	setmetatable(lang, table.Copy(zlib.object:Get("zlib.Language")))
+	zlib.object:SetMetatable("zlib.Language", lang)
 
 	lang:SetName(name)
 
@@ -30,7 +30,7 @@ end
 function zlib.lang:RegisterSet(name)
     local langSet = {}
 
-    setmetatable(langSet, table.Copy(zlib.object:Get("zlib.LanguageSet")))
+	zlib.object:SetMetatable("zlib.LanguageSet", langSet)
 
 	langSet:SetUniqueName(name)
 
@@ -107,8 +107,6 @@ function langSetMtbl:registerLanguage(name)
     return self:getLanguage(name)
 end
 
-langSetMtbl.__index = langSetMtbl
-
 -- Language
 local langMtbl = zlib.object:Create("zlib.Language")
 
@@ -140,5 +138,3 @@ end
 function langMtbl:getTranslation(name, ...)
 	return self:GetTranslations(name, ...)
 end
-
-langMtbl.__index = langMtbl

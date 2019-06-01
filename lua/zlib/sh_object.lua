@@ -12,7 +12,22 @@ zlib.object.cache = (zlib.object.cache or {})
 	- Returns the object metatable
 ]]
 function zlib.object:GetMetaTable()
-	return self._metatable or {}
+	return (self._metatable or {})
+end
+
+--[[
+	zlib.object:SetMetatable(name [string or number], tbl [table])
+
+	- Sets the meta table to an object
+]]
+function zlib.object:SetMetatable(name, tbl)
+	local objMeta = self:Get(name)
+
+	if !(objMeta) then return end
+
+	setmetatable(tbl, { __index = table.Copy(objMeta) })
+
+	return tbl
 end
 
 --[[
@@ -26,7 +41,7 @@ function zlib.object:Create(name, data)
 
 	self.cache[id] = {}
 
-	setmetatable(self.cache[id], self:GetMetaTable())
+	setmetatable(self.cache[id], { __index = table.Copy(self:GetMetaTable()) })
 
 	self.cache[id].__metatable = name
 
@@ -102,39 +117,27 @@ local OMETA_DTNAME, OMETA_PTNAME = "_data", "_params"
 local objMeta = {}
 
 function objMeta:setData(name, val, params)
+	local getter = self["Get" .. name]
+	local setter = self["Set" .. name]
+
 	self[OMETA_DTNAME] = (self[OMETA_DTNAME] or {})
 
-	-- Check if this data exists, if so, set it using the meta and return nothing
-	if (self:getData(name) != nil && self["Set" .. name]) then
-		if !(self:getParameter(name)) then
-			self:setParameter(name, params)
-		end
-
-		return self["Set" .. name](self, val)
+	-- Set parameters
+	if !(self:getParameter(name)) then
+		self:setParameter(name, params)
 	end
 
-	self:setParameter(name, params)
-
-	-- Load custom parameters
-	local hooks = (params && params.hooks || {})
-
-	-- Hooks
-	for k,v in pairs(hooks) do
-		hook.Add(k, "zlib.obj[" .. table.Count(self[OMETA_DTNAME]) .. "].hook." .. k .. "." .. name,
-		function(...)
-			if (isfunction(v) && self) then
-				v(self, ...)
-			end
-		end)
+	-- Check if this data exists, if so, set data and return
+	if (self:getData(name) != nil && isfunction(setter)) then
+		return setter(self, val)
 	end
 
 	-- Get
-	self["Get" .. name] = function(self, ...)
+	getter = function(self, ...)
+		local val = (self[OMETA_DTNAME][name] or false)
 		local onGet = self:getParameter(name)
 		onGet = (onGet && onGet.onGet)
-		
-		local val = (self[OMETA_DTNAME][name] or false)
-		
+
 		-- OnGet param
 		if (isfunction(onGet)) then
 			local retGet = {onGet(self, val, ...)}
@@ -153,11 +156,10 @@ function objMeta:setData(name, val, params)
 	end
 
 	-- Set
-	self["Set" .. name] = function(self, val, ...)
+	setter = function(self, val, ...)
 		local params = self:getParameter(name)
 		local shouldSave = (!params || params.shouldSave == nil || params.shouldSave)
 		local onSet, postSet = (params && params.onSet), (params && params.postSet)
-
 		local oldVal = (self[OMETA_DTNAME][name] or false)
 		
 		-- OnSet param
@@ -185,6 +187,21 @@ function objMeta:setData(name, val, params)
 		return val
 	end
 
+	-- [[Load custom parameters]]
+	local hooks = (params && params.hooks || {})
+
+	-- Hooks
+	for k,v in pairs(hooks) do
+		hook.Add(k, "zlib.obj[" .. table.Count(self[OMETA_DTNAME]) .. "].hook." .. k .. "." .. name,
+		function(...)
+			if (isfunction(v) && self) then
+				v(self, ...)
+			end
+		end)
+	end
+
+	self["Get" .. name] = getter
+	self["Set" .. name] = setter
 	self[OMETA_DTNAME][name] = (val or false)
 
 	return self[OMETA_DTNAME][name]
@@ -236,9 +253,9 @@ function objMeta:getValidatedData(data)
 			local validate = params.validateValue
 
 			if (validate) then
-				local error = validate(v)
+				local err = validate(v)
 
-				if (error) then return error end
+				if (err) then return err end
 			end
 		else
 			data[k] = nil
@@ -272,13 +289,13 @@ end
 function objMeta:extendDataParameters(name, extParams)
 	local params = self:getParameterTable()
 	
-	if (params[name]) then
-		for k,v in pairs(extParams) do
-			params[name][k] = v
-		end
+	if !(params[name]) then return end
 
-		self:setParameter(name, params[name])
+	for k,v in pairs(extParams) do
+		params[name][k] = v
 	end
+
+	self:setParameter(name, params[name])
 end
 
 function objMeta:onSetData(...) end

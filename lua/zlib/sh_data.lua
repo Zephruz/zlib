@@ -15,7 +15,7 @@ zlib.data._connections = (zlib.data._connections or {})
 function zlib.data:RegisterType(name, data)
 	self.types[name] = data
 
-	setmetatable(self.types[name], self:GetMetaTable())
+	zlib.object:SetMetatable("zlib.DataMeta", self.types[name])
 
 	return self.types[name]
 end
@@ -34,7 +34,10 @@ function zlib.data:LoadType(name, config)
 		return
 	end
 
-	local dmtbl = setmetatable({}, {__index = dmeta})
+	local dmtbl = {}
+	
+	setmetatable(dmtbl, {__index = table.Copy(dmeta)})
+
 	dmtbl:SetName(name or defType)
 	dmtbl:SetConfig(config or {})
 
@@ -96,7 +99,6 @@ function dataMeta:Query(query, sucCb, errCb)
 	end
 end
 
-dataMeta.__index = dataMeta
 zlib.data._metatable = dataMeta
 
 --[[

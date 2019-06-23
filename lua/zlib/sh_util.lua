@@ -187,6 +187,23 @@ function zlib.util:ContainsProfanity(text, callback, filter, useApi)
 	end)
 end
 
+--[[
+	zlib.util:ConcatenateTable(tbl [table], concatenator [bool = false])
+
+	- Safely concatenates passed table
+]]
+function zlib.util:ConcatTable(tbl, concatenator)
+	local outTbl = {}
+
+	for k,v in pairs(tbl) do
+		if (!v or isbool(v) or istable(v)) then continue end // Filter out specific types
+
+		table.insert(outTbl, v)
+	end
+
+	return table.concat(outTbl, concatenator)
+end
+
 --[[--------------------------
 	ICON SETS
 	THANKS THREEBALLS

@@ -89,7 +89,15 @@ end
 
 function dataMeta:Connect(sucCb, errCb)
 	if (self.connect) then
-		self:connect(sucCb, errCb)
+		self:connect(
+		function(...)
+			if (sucCb) then sucCb(...) end
+		end, 
+		function(...)
+			if (errCb) then errCb(...) end
+
+			zlib:ConsoleMessage("Failed to connect database: " .. zlib.util:ConcatTable({...}, ", "))
+		end)
 	end
 end
 

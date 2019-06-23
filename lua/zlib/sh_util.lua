@@ -188,7 +188,7 @@ function zlib.util:ContainsProfanity(text, callback, filter, useApi)
 end
 
 --[[
-	zlib.util:ConcatenateTable(tbl [table], concatenator [bool = false])
+	zlib.util:ConcatTable(tbl [table], concatenator [bool = false])
 
 	- Safely concatenates passed table
 ]]

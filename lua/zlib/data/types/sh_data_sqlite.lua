@@ -10,12 +10,14 @@ zlib.data:RegisterType("sqlite", {
 	query = function(self, query, sucCb, errCb)
 		query = query:gsub("AUTO_INCREMENT", "AUTOINCREMENT") -- Workaround for sqlite & mysql compatible queries
 		local query = sql.Query(query)
-		
+		local result, lastID
+
 		if (query == nil || query) then
 			query = (query or {})
+			result = query
 
 			if (sucCb) then
-				local lastID = sql.Query("SELECT last_insert_rowid()")
+				lastID = sql.Query("SELECT last_insert_rowid()")
 				lastID = (lastID && tonumber(lastID[1]["last_insert_rowid()"]) || 0)
 
 				for _,row in pairs(query) do
@@ -31,7 +33,11 @@ zlib.data:RegisterType("sqlite", {
 				sucCb(query, lastID)
 			end
 		elseif (errCb) then
-			errCb(sql.LastError(), query)
+			result = sql.LastError()
+
+			errCb(result, query)
 		end
+
+		return result, lastID
 	end,
 })

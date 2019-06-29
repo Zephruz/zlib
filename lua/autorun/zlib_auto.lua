@@ -7,7 +7,8 @@ zlib = (zlib or {})
 zlib._version = "V1a"
 
 function zlib:ConsoleMessage(...)
-    MsgC(Color(125,255,0), "[zlib] ", Color(255,255,255), ..., "\n")
+    MsgC(Color(125,255,0), "[zlib] ", Color(255,255,255), ...)
+    Msg("\n")
 end
 
 function zlib:Load()

@@ -8,6 +8,10 @@ zlib.data:RegisterType("file", {
 		return (self.dir or nil)
 	end,
 	SetDir = function(self, dir)
+		if !(string.EndsWith(dir, "/")) then
+			dir = dir .. "/"
+		end
+
 		self.dir = dir
 
 		return self

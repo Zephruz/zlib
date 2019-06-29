@@ -10,7 +10,7 @@ zlib.data._connections = (zlib.data._connections or {})
 --[[
 	zlib.data:RegisterType(name [string], data [table])
 
-	- Registers a data type
+	- Registers a new data type
 ]]
 function zlib.data:RegisterType(name, data)
 	self.types[name] = data
@@ -21,15 +21,15 @@ function zlib.data:RegisterType(name, data)
 end
 
 --[[
-	zlib.data:LoadType(name [, config])
+	zlib.data:LoadType(name [string], config [table = null])
 
-	- Returns a new data type
+	- Returns a data type
 ]]
 function zlib.data:LoadType(name, config)
 	local dmeta = self.types[name]
 
 	if !(dmeta) then
-		zlib:ConsoleMessage(Color(255,125,0), "Invalid data type '" .. name .. "'!")
+		zlib:ConsoleMessage("Invalid data type '" .. name .. "'!")
 
 		return
 	end

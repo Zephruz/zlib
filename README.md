@@ -1,5 +1,5 @@
 # zlib
-Library that I've developed to use for my gmod addons.
+Utility library used to aid the development of Garrys Mod addons.
 
 ### Credits/Acknowledgement
 _Vercas_ - vON (https://github.com/vercas/vON)

@@ -18,7 +18,9 @@ netPoint.reqTimeout = 5  	-- How long before a request times out and retries
 
 netPoint.reqRetryAmt = 2	-- How many times a request is retried before closed
 
-netPoint.maxRequests = 50 	-- Maximum amount of requests within (netPoint.reqTimeout) seconds [before a user gets blocked from sending more until timeout]
+netPoint.reqThreshold = 5 	-- Threshold (in seconds) for the maximum amount of requests; Ex: 50 requests/2 seconds
+
+netPoint.maxRequests = 50 	-- Maximum amount of requests within (netPoint.reqThreshold) seconds [before a user gets blocked from sending more until timeout]
 
 --[[DON'T EDIT BELOW HERE]]
 netPoint._cache = (netPoint._cache or {})
@@ -255,16 +257,16 @@ if (SERVER) then
 
 		-- Check if this player is spamming, if so; stop them (temporarily)
 		local maxReqs = (netPoint.maxRequests or 100)
-		local rfsResAt = ply:GetNWInt("NP_RS_RESETAT", os.time())
-		local rfsTReqs = ply:GetNWInt("NP_RS_TOTAL", 1)
+		local rfsResAt = ply:GetNW2Int("NP_RS_RESETAT", os.time())
+		local rfsTReqs = ply:GetNW2Int("NP_RS_TOTAL", 1)
 
 		if (rfsResAt > os.time() && rfsTReqs >= maxReqs) then
 			return false
-		elseif (rfsResAt < os.time()) then
-			ply:SetNWInt("NP_RS_RESETAT", os.time()+5)
-			ply:SetNWInt("NP_RS_TOTAL", 0)
+		elseif (rfsResAt <= os.time()) then
+			ply:SetNW2Int("NP_RS_RESETAT", os.time() + (netPoint.reqThreshold || 5))
+			ply:SetNW2Int("NP_RS_TOTAL", 0)
 		else
-			ply:SetNWInt("NP_RS_TOTAL", rfsTReqs+1)
+			ply:SetNW2Int("NP_RS_TOTAL", rfsTReqs + 1)
 		end
 
 		local retData = {}
@@ -348,10 +350,11 @@ if (CLIENT) then
 		local data, dataBInt, compData = netPoint:DecompressNetData()
 		local pLoadHeader = string.Explode(",", net.ReadString())
 		local pLoadExtraHeader = net.ReadString()
-		pLoadExtraHeader = (von && von.deserialize(pLoadExtraHeader) || util.JSONToTable(pLoadExtraHeader))
-		pLoadExtraHeader = (istable(pLoadExtraHeader) && unpack(pLoadExtraHeader) || false)
 		local pLoadID, pLoadRandID, pLoadSize, pLoadFragmentID, svCRC = unpack(pLoadHeader)
 		local onReceive = netPoint._payloads[pLoadID]
+
+		pLoadExtraHeader = (von && von.deserialize(pLoadExtraHeader) || util.JSONToTable(pLoadExtraHeader))
+		pLoadExtraHeader = (istable(pLoadExtraHeader) && unpack(pLoadExtraHeader) || false)
 		
 		if (onReceive) then
 			local clCRC = util.CRC(compData)
@@ -409,10 +412,10 @@ if (CLIENT) then
 
 			-- Send request
 			self:SendCompressedNetMessage(netPoint._receivers["sv"], "SERVER", reqData,
-				function()
-					net.WriteString(reqEP)
-					net.WriteString(tostring(reqID))
-				end)
+			function()
+				net.WriteString(reqEP)
+				net.WriteString(tostring(reqID))
+			end)
 
 			self:DebugMessage("REQUEST SENT: " .. reqID .. " - " .. os.date("%H:%M:%S - %m/%d/%Y", os.time()))
 		end

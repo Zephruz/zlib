@@ -269,6 +269,10 @@ function objMeta:getData(name)
 	return (self[OMETA_DTNAME] && self[OMETA_DTNAME][name] == nil && nil || self[OMETA_DTNAME][name])
 end
 
+function objMeta:getRawData(name)
+	return rawget(self[OMETA_DTNAME], name)
+end
+
 function objMeta:getDataTable()
 	return (self[OMETA_DTNAME] or {})
 end

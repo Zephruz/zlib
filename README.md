@@ -1,7 +1,7 @@
 # zlib
 Utility library used to aid the development of Garrys Mod addons.
 
-# How to Install
+### How to Install
 Requirement: Have a Garry's Mod server
 
 - Download this repository in a zip

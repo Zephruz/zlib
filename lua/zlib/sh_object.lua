@@ -161,8 +161,10 @@ function objMeta:setData(name, val, params)
 		local shouldSave = (!params || params.shouldSave == nil || params.shouldSave)
 		local onSet, postSet = (params && params.onSet), (params && params.postSet)
 		local oldVal = (self[OMETA_DTNAME][name] or false)
+
+		if (oldVal == val) then return oldVal end
 		
-		-- OnSet param
+		-- Call onSet parameter-based stub; Called before the value is set, can return an alternate value
 		if (isfunction(onSet)) then
 			local retSet = onSet(self, val, oldVal, ...)
 
@@ -171,15 +173,20 @@ function objMeta:setData(name, val, params)
 			end
 		end
 
+		-- Set value/data
 		self[OMETA_DTNAME][name] = (val or false)
 		
-		if (isfunction(postSet)) then postSet(self, val, oldVal, ...) end
+		-- Call postSet parameter-based stub; Called after the value is set, useful for needing to know when a value is changed
+		if (isfunction(postSet)) then 
+			postSet(self, val, oldVal, ...) 
+		end
 
-		-- OnSet obj
+		-- Call onSetData stub; Called after the value is set, alias of the postSet parameter-based method
 		if (isfunction(self.onSetData)) then
 			self:onSetData(name, val, ...)
 		end
-		
+
+		-- Save data; Calls the onSave method and passes the serialized data to it
 		if (shouldSave) then
 			self:saveData()
 		end
@@ -227,15 +234,19 @@ end
 function objMeta:saveData(callback)
 	local oData = (self:getValidatedData() or {})
 
-	if (isstring(oData)) then return oData end
+	if (istable(oData)) then
+		-- Serialize table data
+		for k,v in pairs(oData) do
+			local params = self:getParameter(k)
 
-	for k,v in pairs(oData) do
-		local params = self:getParameter(k)
+			oData[k] = (params.shouldSave != false && v || nil)
+		end
 
-		oData[k] = (params.shouldSave != false && v || nil)
+		oData = (oData && von && von.serialize(oData) || nil)
+	else
+		-- Turn whatever we have into a string
+		oData = tostring(oData)
 	end
-
-	oData = (oData && von && von.serialize(oData) || nil)
 
 	-- On Save
 	if !(oData) then return false end

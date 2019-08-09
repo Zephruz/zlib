@@ -45,25 +45,16 @@ local function splitTable(inTbl,at)
 	-- [[Chop it up]]
 	for i=1,fl do outTbl[i] = {} end
 
-	-- [[Stash any non-numerical (or large) index's into a keyStash for later re-indexing]]
-	for k,v in pairs(inTbl) do
-		if (!isnumber(k) or k>#inTbl) then
-			local data = v -- Localize data
-			inTbl[k] = nil -- Nil string index
+	local curItem = 1
 
-			local newPos = #inTbl+1 -- Get the new position
-			inTbl[newPos] = data -- Add to a numerical index in the original table
-			keyStash[newPos] = k -- Save the string key in the keystash at its number index
+	for k,v in pairs(inTbl) do
+		local outID = math.ceil(curItem/at)
+
+		if (outTbl[outID]) then
+			outTbl[outID][k] = v
+
+			curItem = curItem + 1
 		end
-	end
-
-	-- [[Place into new table]]
-	for k,v in pairs(inTbl) do
-		local indx = math.ceil(k/split)
-
-		if !(outTbl[indx]) then outTbl[indx] = {} end
-
-		outTbl[indx][(keyStash[k] || k)] = (inTbl[k] or false)
 	end
 
 	return outTbl
@@ -73,8 +64,6 @@ local function rebuildSplitTable(inTbl)
 	local outTbl = {}
 
 	for i=1,#inTbl do
-		if !(istable(inTbl[i])) then continue end
-		
 		for k,v in pairs(inTbl[i]) do
 			outTbl[k] = v
 		end
@@ -83,6 +72,8 @@ local function rebuildSplitTable(inTbl)
 	return outTbl
 end
 
+table.split = splitTable
+table.rebuild = rebuildSplitTable
 
 --[[----------
 	SHARED
@@ -150,7 +141,7 @@ function netPoint:SendPayload(id, ply, tbl, pLoadSize, ...)
 	local compTbl, size = self:CompressTableToSend(tbl)
 
 	-- Split table
-	pLoadSize = (pLoadSize or 1)
+	pLoadSize = (pLoadSize or 5)
 	local splitTbl = splitTable(tbl, pLoadSize) -- Split the table so we can send it in payloads
 	local pLoadRandID = math.random(1,1000000000) -- Generate a random payload ID
 	local pLoadSize = table.Count(splitTbl)

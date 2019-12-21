@@ -174,7 +174,7 @@ if (CLIENT) then
 
 		if !(cache) then return end
 		if !(cache.onPlayerReceive) then return end
-		
+
 		cache:onPlayerReceive(data)
 	end)
 end

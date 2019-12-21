@@ -204,6 +204,25 @@ function zlib.util:ConcatTable(tbl, concatenator)
 	return table.concat(outTbl, concatenator)
 end
 
+--[[
+	zlib.util:SetUserGroup(ply [player], group [string])
+
+	- Sets a users group based on the installed administration mod.
+]]
+function zlib.util:SetUserGroup(ply, group)
+	if (CLIENT) then return false end
+
+	if serverguard then
+        serverguard.player:SetRank(ply, group)
+    elseif xAdmin then
+        xAdmin.SetUserRank(ply, group)
+    else
+        ply:SetUserGroup(group)
+	end
+	
+	return true
+end
+
 --[[--------------------------
 	ICON SETS
 	THANKS THREEBALLS

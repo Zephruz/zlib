@@ -223,6 +223,94 @@ function zlib.util:SetUserGroup(ply, group)
 	return true
 end
 
+--[[
+	zlib.util:Serialize(tbl [table], overrideType [serializer type], suppressErrors [boolean])
+
+	- Serializes a table into a storable string
+]]
+function zlib.util:Serialize(tbl, overrideType, suppressErrors)
+	if !(istable(tbl)) then return nil end
+
+	local result, val
+
+	overrideType = (overrideType && self.dataSerializers[overrideType] || false)
+
+	if (overrideType) then
+		if !(overrideType.isValid()) then return nil end
+
+		local oResult, oVal = overrideType.s(tbl)
+
+		result = oResult
+		val = oVal
+	else
+		local jResult, jVal = self.dataSerializers.json.s(tbl)
+
+		result = jResult
+		val = jVal
+	end
+
+	if !(result) then 
+		if !(suppressErrors) then
+			zlib:ConsoleMessage("Unable to serialize table! (" .. table.ToString(tbl, "TableToSerialize") .. ")")
+		end
+
+		return nil 
+	end
+
+	return val
+end
+
+zlib.util.dataSerializers = {
+	["json"] = {
+		order = 1,
+		isValid = function() return true end,
+		d = function(val)
+			val = util.JSONToTable(val)
+
+			return istable(val), (istable(val) && val || nil)
+		end,
+		s = function(val)
+			return pcall(util.TableToJSON, val)
+		end
+	},
+	["von"] = {
+		order = 2,
+		isValid = function() return von != nil end,
+		d = function(val)
+			if (val:match("^%[.*%]$") != nil || val:match("^{.*}$") != nil) then return false end
+
+			return pcall(von.deserialize, val)
+		end,
+		s = function(val)
+			return pcall(von.serialize, val)
+		end
+	},
+}
+
+--[[
+	zlib.util:Deserialize(str [string], suppressErrors [boolean])
+
+	- Attempts to deserializes a string into a table
+		* Will attempt ot deserialize with all data serializers in the **zlib.util.dataSerializers** table
+]]
+function zlib.util:Deserialize(str, suppressErrors)
+	if !(isstring(str)) then return nil end
+
+	for k,v in SortedPairsByMemberValue(self.dataSerializers, order) do
+		local result, val = v.d(str)
+
+		if (result) then
+			return val
+		end
+	end
+
+	if !(suppressErrors) then
+		zlib:ConsoleMessage("Unable to deserialize string! (" .. str .. ")")
+	end
+
+	return nil
+end
+
 --[[--------------------------
 	ICON SETS
 	THANKS THREEBALLS

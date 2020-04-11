@@ -155,7 +155,7 @@ function migrationMtbl:backupTable(tableName, cb, dropTable)
         if (table.Count(data) > 0) then
             for k,v in pairs(data) do
                 if (istable(v)) then
-                    table.insert(rows, (von && von.serialize(v) || util.TableToJSON(v))) // Add data to table
+                    table.insert(rows, zlib.util:Serialize(v)) // Add data to table
                 end
             end
         end
@@ -237,8 +237,8 @@ end)
 ]]
 hook.Add("zlib.Loaded", "zlib.data.MigrationLoad[zlib.Loaded]",
 function()
-    zlib.data:LoadType("sqlite"):Query([[CREATE TABLE `zlib_migrations` (
-        `uid` VARCHAR(255) PRIMARY KEY,
+    zlib.data:LoadType("sqlite"):Query([[CREATE TABLE IF NOT EXISTS `zlib_migrations` (
+        `uid` VARCHAR(120) PRIMARY KEY,
         `data` LONGTEXT NOT NULL
-    )]])
+    )]], nil, function(err, sSql) zlib:ConsoleMessage((err || "Unknown error") .. " - " .. (sSql || "")) end)
 end)

@@ -145,7 +145,7 @@ function netPoint:SendPayload(id, ply, tbl, pLoadSize, ...)
 	local splitTbl = splitTable(tbl, pLoadSize) -- Split the table so we can send it in payloads
 	local pLoadRandID = math.random(1,1000000000) -- Generate a random payload ID
 	local pLoadSize = table.Count(splitTbl)
-	local extraHeader = (von && von.serialize({...}) || util.TableToJSON({...})) -- Serialize the extraHeader to maintain its type integrity
+	local extraHeader = zlib.util:Serialize({...}) -- Serialize the extraHeader to maintain its type integrity
 
 	for k,v in pairs(splitTbl) do
 		self:SendCompressedNetMessage(self._receivers["payload"], ply, v,
@@ -178,9 +178,9 @@ end
 	-- * tbl (TABLE) - Data table to compress
 ---------------------
 function netPoint:CompressTableToSend(tbl)
-	tbl = (von && von.serialize(tbl) || util.TableToJSON(tbl))
+	tbl = zlib.util:Serialize(tbl)
 	tbl = util.Compress(tbl)
-
+	
 	if !(tbl) then return self:CompressTableToSend({["_netPoint"] = "NO DATA [empty]"}) end
 
 	return tbl, (tbl && #tbl || 0)
@@ -195,9 +195,9 @@ function netPoint:DecompressNetData()
 	local dataBInt = net.ReadUInt(32)
 	local compData = net.ReadData(dataBInt)
 	local data = (compData && util.Decompress(compData))
-	data = (data && von && von.deserialize(data) || data && util.JSONToTable(data) || nil)
+	data = (data && zlib.util:Deserialize(data))
 
-	if (data["_netPoint"]) then
+	if (data && data["_netPoint"]) then
 		self:DebugMessage(data["_netPoint"])
 
 		data["_netPoint"] = nil
@@ -344,7 +344,7 @@ if (CLIENT) then
 		local pLoadID, pLoadRandID, pLoadSize, pLoadFragmentID, svCRC = unpack(pLoadHeader)
 		local onReceive = netPoint._payloads[pLoadID]
 
-		pLoadExtraHeader = (von && von.deserialize(pLoadExtraHeader) || util.JSONToTable(pLoadExtraHeader))
+		pLoadExtraHeader = zlib.util:Deserialize(pLoadExtraHeader)
 		pLoadExtraHeader = (istable(pLoadExtraHeader) && unpack(pLoadExtraHeader) || false)
 		
 		if (onReceive) then

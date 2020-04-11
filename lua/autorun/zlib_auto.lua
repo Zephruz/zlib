@@ -4,7 +4,7 @@
 ]]
 
 zlib = (zlib or {})
-zlib._version = "V1.1"
+zlib._version = "V1.2"
 
 function zlib:ConsoleMessage(...)
     MsgC(Color(125,255,0), "[zlib] ", Color(255,255,255), ...)

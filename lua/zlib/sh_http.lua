@@ -13,7 +13,7 @@ zlib.http = {}
 function zlib.http:JSONFetch(url, onSuccess, onFail, header)
     http.Fetch(url,
     function(body, len, headers, code)
-        local json = util.JSONToTable(body)
+        local json = zlib.util:Deserialize(body)
 
         if (istable(json)) then
             if (onSuccess) then onSuccess(json) end
@@ -34,7 +34,7 @@ end
 function zlib.http:JSONPost(url, params, header, onSuccess, onFail)
     http.Post(url, (params or {}),
     function(body, len, headers, code)
-        local json = util.JSONToTable(body)
+        local json = zlib.util:Deserialize(body)
 
         if (istable(json)) then
             if (onSuccess) then onSuccess(json) end
@@ -58,7 +58,7 @@ function zlib.http:Request(method, url, body, onSuccess, onFail)
         url = url, 
         type = "application/json",
         headers = nil, 
-        body = util.TableToJSON(body), 
+        body = zlib.util:Serialize(body), 
         success = function(...)
             if (onSuccess) then onSuccess(...) end
         end,

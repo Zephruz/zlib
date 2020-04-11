@@ -242,7 +242,7 @@ function objMeta:saveData(callback)
 			oData[k] = (params.shouldSave != false && v || nil)
 		end
 
-		oData = (oData && von && von.serialize(oData) || nil)
+		oData = (oData && zlib.util:Serialize(oData) || nil)
 	else
 		-- Turn whatever we have into a string
 		oData = tostring(oData)

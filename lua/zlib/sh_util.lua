@@ -254,7 +254,7 @@ function zlib.util:Serialize(tbl, overrideType, suppressErrors)
 			zlib:ConsoleMessage("Unable to serialize table! (" .. table.ToString(tbl, "TableToSerialize") .. ")")
 		end
 
-		return nil 
+		return nil
 	end
 
 	return val

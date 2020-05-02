@@ -15,7 +15,10 @@ function zlib.network:RegisterAction(name, data)
 
 	netPoint:CreateEndPoint(actionID .. ".receiveRequest", {
 		request = function(ply,val)
-			if (data.adminOnly && !table.HasValue(data.adminOnly, ply:GetUserGroup())) then return false end
+			local adminGroups = (data.adminOnly || data.adminGroups)
+
+			// Block any users who aren't within the group
+			if (adminGroups && !table.HasValue(adminGroups, ply:GetUserGroup())) then return false end
 
 			local name, id = val.name, val.id
 			val = (val.data or {})

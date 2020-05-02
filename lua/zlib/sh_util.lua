@@ -265,6 +265,7 @@ zlib.util.dataSerializers = {
 		order = 1,
 		isValid = function() return true end,
 		d = function(val)
+			val = string.Replace(val, "\n", "")
 			val = util.JSONToTable(val)
 
 			return istable(val), (istable(val) && val || nil)
@@ -291,7 +292,7 @@ zlib.util.dataSerializers = {
 	zlib.util:Deserialize(str [string], suppressErrors [boolean])
 
 	- Attempts to deserializes a string into a table
-		* Will attempt ot deserialize with all data serializers in the **zlib.util.dataSerializers** table
+		* Will attempt to deserialize with all data serializers in the **zlib.util.dataSerializers** table
 ]]
 function zlib.util:Deserialize(str, suppressErrors)
 	if !(isstring(str)) then return nil end

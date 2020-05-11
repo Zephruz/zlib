@@ -23,7 +23,7 @@ end
 --[[
 	zlib.data:LoadType(name [string], config [table = null])
 
-	- Returns a data type
+	- Returns a temporary/disposable data type
 ]]
 function zlib.data:LoadType(name, config)
 	local dmeta = self.types[name]
@@ -55,6 +55,8 @@ end
 
 --[[
 	zlib.data:GetConnection(id [string])
+
+	- Returns the connection from the conneciton pool
 ]]
 function zlib.data:GetConnection(id)
 	return self._connections[id]
@@ -64,7 +66,38 @@ end
 	zlib.data:SetupConnection(id [string], dtype [data type meta])
 ]]
 function zlib.data:SetupConnection(id, dtype)
-	self._connections[id] = dtype
+	if !(dtype) then return end
+
+	return self:CreateConnection(id, dtype:GetName())
+end
+
+--[[
+	zlib.data:CreateConnection(id [string], dTypeName [string], config [table = {}])
+]]
+function zlib.data:CreateConnection(id, dTypeName, config)
+	if !(id) then
+		zlib:ConsoleMessage("Invalid ID passed to create connection.")
+
+		return
+	end
+
+	local curCon = self:GetConnection(id)
+
+	if (istable(curCon)) then return curCon end
+
+	local dmeta = self:LoadType(dTypeName, config)
+
+	if !(dmeta) then
+		zlib:ConsoleMessage("Invalid data type '" .. dTypeName .. "'!")
+
+		return
+	end
+
+	self._connections[id] = {}
+	
+	setmetatable(self._connections[id], {__index = table.Copy(dmeta)})
+
+	self._connections[id]:SetName(id)
 
 	return self._connections[id]
 end
@@ -89,15 +122,13 @@ end
 
 function dataMeta:Connect(sucCb, errCb)
 	if (self.connect) then
-		self:connect(
-		function(...)
-			if (sucCb) then sucCb(...) end
-		end, 
-		function(...)
-			if (errCb) then errCb(...) end
+		return self:connect(sucCb, errCb)
+	end
+end
 
-			zlib:ConsoleMessage("Failed to connect database: " .. zlib.util:ConcatTable({...}, ", "))
-		end)
+function dataMeta:Disconnect(sucCb, errCb)
+	if (self.disconnect) then
+		return self:disconnect(sucCb, errCb)
 	end
 end
 

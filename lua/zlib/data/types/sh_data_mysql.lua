@@ -11,13 +11,19 @@ zlib.data:RegisterType("mysqloo", {
 		local dbInfo = (cfg && cfg.mysqlInfo || false)
 
 		if !(dbInfo) then zlib:ConsoleMessage("Invalid MySQL info, cancelling connection attempt.") return end
-		
+
+		if (self._dbconn && self._dbconn:status() == mysqloo.DATABASE_CONNECTED) then
+			if (sucCb) then
+				sucCb()
+			end
+
+			return
+		end
+
 		if (res) then
 			db = mysqloo.connect(dbInfo.dbHost, dbInfo.dbUser, dbInfo.dbPass, dbInfo.dbName, (dbInfo.dbPort or 3306))
 
 			db.onConnected = function(s)
-				self._dbconn = db
-				
 				if (sucCb) then
 					sucCb()
 				end
@@ -29,10 +35,20 @@ zlib.data:RegisterType("mysqloo", {
 				end
 			end
 
+			db:setAutoReconnect(true)
 			db:connect()
+
+			self._dbconn = db
 		else
 			ErrorNoHalt(resErr)
 		end
+	end,
+	disconnect = function(self, sucCb, errCb)
+		if (self._dbconn) then
+			self._dbconn:disconnect(true)
+		end
+
+		if (sucCb) then sucCb(true) end
 	end,
 	query = function(self, query, sucCb, errCb)
 		if !(self._dbconn) then return false end
@@ -47,7 +63,10 @@ zlib.data:RegisterType("mysqloo", {
 		q.onError = function(s, err, sql)
 			if (errCb) then errCb(err, sql) end
 		end
-
+		q.onAbort = function(s, sql)
+			if (errCb) then errCb("Query was aborted! [" .. sql .. "]", sql) end
+		end
+		
 		q:start()
 	end,
 	getDatabaseConnection = function(self)

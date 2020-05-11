@@ -138,6 +138,29 @@ function zlib.util:OpenURL(url, ply)
 end
 
 --[[
+	zlib.util:GetPrintNameByClass(
+		* class [string]
+	)
+
+	- Attempts to return a print name by the passed class
+		* If a print name cannot be determined it returns false
+]]
+function zlib.util:GetPrintNameByClass(class)
+	if (class == nil) then return false end
+
+	for k,v in pairs({ "Weapon", "SpawnableEntities" }) do
+		local classList = list.Get(v)
+		local classData = (classList && classList[class])
+
+		if (classData != nil && classData.PrintName != nil) then
+			return classData.PrintName
+		end
+	end
+
+	return false
+end
+
+--[[
 	zlib.util:GetTextSize(text [string], font [string])
 
 	- Returns the size of the text
@@ -260,6 +283,7 @@ function zlib.util:Serialize(tbl, overrideType, suppressErrors)
 	return val
 end
 
+/* SERIALIZERS */
 zlib.util.dataSerializers = {
 	["json"] = {
 		order = 1,
@@ -312,9 +336,45 @@ function zlib.util:Deserialize(str, suppressErrors)
 	return nil
 end
 
+--[[
+	zlib.util:GetEntityData(ent [entity])
+
+	* Returns a table of entity data
+]]
+function zlib.util:GetEntityData(ent)
+    local data = {}
+
+    if !(ent.GetNetworkVars) then return data end
+
+    local dbgName, dTable = debug.getupvalue(ent.GetNetworkVars, 1)
+
+    for k,v in pairs(dTable) do
+        data[k] = v.GetFunc(ent, v.index)
+    end
+
+    return data
+end
+
+--[[
+	zlib.util:SetEntityData(ent [entity], data [table])
+
+	* Sets an entities data table; utilize the GetEntityData function result to set the table
+]]
+function zlib.util:SetEntityData(ent, data)
+    for k,v in pairs(data) do
+        local setFunc = ent["Set" .. k]
+
+        if (setFunc) then
+            setFunc(ent, v)
+        end
+    end
+
+    return true
+end
+
 --[[--------------------------
 	ICON SETS
-	THANKS THREEBALLS
+	THANKS THREEBOWS
 	http://threebow.com
 ----------------------------]]
 local function downloadFile(filename, url, callback, errorCallback)

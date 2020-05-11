@@ -3,8 +3,14 @@
     Developed by Zephruz
 ]]
 
-zlib.object = (zlib.object or {})
-zlib.object.cache = (zlib.object.cache or {})
+zlib.object = (zlib.object || {_cache = {}})
+
+setmetatable(zlib.object, { 
+	__index = {},
+	__call = function(s,name)
+		return s:Get(name)
+	end
+})
 
 --[[
 	zlib.object:GetMetaTable()
@@ -37,21 +43,21 @@ end
 	- Returns the cached object/metatable and its cached name/ID
 ]]
 function zlib.object:Create(name, data)
-	local id = (name or #self.cache+1)
+	local id = (name or #self._cache+1)
 
-	self.cache[id] = {}
+	self._cache[id] = {}
 
-	setmetatable(self.cache[id], { __index = table.Copy(self:GetMetaTable()) })
+	setmetatable(self._cache[id], { __index = table.Copy(self:GetMetaTable()) })
 
-	self.cache[id].__metatable = name
+	self._cache[id].__metatable = name
 
 	if (data) then
 		for k,v in pairs(data) do
-			self.cache[id]:setData(k,v)
+			self._cache[id]:setData(k,v)
 		end
 	end
 
-	return self.cache[id], id
+	return self._cache[id], id
 end
 
 --[[
@@ -76,9 +82,9 @@ end
 	- Returns true if removed or false if not found/unsuccessful
 ]]
 function zlib.object:Remove(name)
-	local data = self.cache[name] -- Get the cache
+	local data = self._cache[name] -- Get the cache
 
-	self.cache[name] = nil  -- Nil it anyways
+	self._cache[name] = nil  -- Nil it anyways
 
 	return (data && true || false)
 end
@@ -89,7 +95,7 @@ end
 	- Returns an object/metatable by cached name (key) OR nil if not found
 ]]
 function zlib.object:Get(name)
-	return (self.cache[name] or nil)
+	return (self._cache[name] or nil)
 end
 
 --[[
@@ -199,12 +205,18 @@ function objMeta:setData(name, val, params)
 
 	-- Hooks
 	for k,v in pairs(hooks) do
-		hook.Add(k, "zlib.obj[" .. table.Count(self[OMETA_DTNAME]) .. "].hook." .. k .. "." .. name,
-		function(...)
-			if (isfunction(v) && self) then
-				v(self, ...)
-			end
-		end)
+		if (isfunction(v)) then
+			hook.Add(k, "zlib.obj[" .. table.Count(self[OMETA_DTNAME]) .. "].hook." .. k .. "." .. name,
+			function(...)
+				if (self) then
+					local result = v(self, ...)
+                
+                    if (result != nil) then
+                        return unpack({result}) 
+                    end
+				end
+			end)
+		end
 	end
 
 	self["Get" .. name] = getter

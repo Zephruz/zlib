@@ -253,8 +253,8 @@ function objMeta:saveData(callback)
 
 			oData[k] = (params.shouldSave != false && v || nil)
 		end
-
-		oData = (zlib.util:Serialize(oData) || {})
+		
+		oData = zlib.util:Serialize(oData || {}) || ""
 	else
 		-- Turn whatever we have into a string
 		oData = tostring(oData)
@@ -263,6 +263,9 @@ function objMeta:saveData(callback)
 	-- On Save
 	if !(oData) then return false end
 
+	oData = string.JavascriptSafe(oData) // mysql doesn't like serialized data
+	oData = string.format("'%s'", oData) // encapsulate
+	
 	if (self.onSave) then self:onSave(oData, callback) end
 end
 

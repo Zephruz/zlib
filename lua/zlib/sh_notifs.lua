@@ -6,6 +6,7 @@
 zlib.notifs = (zlib.notifs or {})
 
 --[[Config]]
+zlib.notifs.enableChatText = true
 zlib.notifs.speed = 7
 zlib.notifs.length = 5
 zlib.notifs.size = {
@@ -62,7 +63,9 @@ if (CLIENT) then
         table.insert(notifications, newNotif)
 
         -- Chat text
-        chat.AddText(Color(255,255,255), msg)
+        if (zlib.notifs.enableChatText) then
+            chat.AddText(Color(255,255,255), msg)
+        end
     end
 
     local function removeNotification(id)

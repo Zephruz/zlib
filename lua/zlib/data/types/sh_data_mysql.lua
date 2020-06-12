@@ -4,6 +4,15 @@
 ]]
 
 zlib.data:RegisterType("mysqloo", {
+	isConnected = function(self)
+		return self._dbconn && self._dbconn:status() == mysqloo.DATABASE_CONNECTED
+	end,
+	dbString = function(self)
+		local cfg = self:GetConfig()
+		local dbInfo = (cfg && cfg.mysqlInfo || false)
+
+		return string.format("[%s - %s]", self:GetName(), (dbInfo && dbInfo.dbHost || "UNKNOWN HOST"))
+	end,
 	connect = function(self, sucCb, errCb)
 		local db
 		local res, resErr = pcall(require, "mysqloo")
@@ -12,24 +21,24 @@ zlib.data:RegisterType("mysqloo", {
 
 		if !(dbInfo) then zlib:ConsoleMessage("Invalid MySQL info, cancelling connection attempt.") return end
 
-		if (self._dbconn && self._dbconn:status() == mysqloo.DATABASE_CONNECTED) then
+		if (self:isConnected()) then
 			if (sucCb) then
 				sucCb()
 			end
-
-			return
-		end
-
-		if (res) then
+		elseif (res) then
 			db = mysqloo.connect(dbInfo.dbHost, dbInfo.dbUser, dbInfo.dbPass, dbInfo.dbName, (dbInfo.dbPort or 3306))
 
 			db.onConnected = function(s)
+				zlib:DebugMessage(self:dbString(), " Connected to database")
+				
 				if (sucCb) then
 					sucCb()
 				end
 			end
 
 			db.onConnectionFailed = function(s, err)
+				zlib:ConsoleMessage(self:dbString(), Color(255,125,35), " Failed to connect to database! Error: " .. err)
+
 				if (errCb) then
 					errCb(err)
 				end
@@ -44,11 +53,17 @@ zlib.data:RegisterType("mysqloo", {
 		end
 	end,
 	disconnect = function(self, sucCb, errCb)
+		local isConnected = self:isConnected()
+
 		if (self._dbconn) then
-			self._dbconn:disconnect(true)
+			self._dbconn:disconnect(isConnected)
+
+			if (isConnected) then
+				zlib:DebugMessage(self:dbString(), " Disconnected from database")
+			end
 		end
 
-		if (sucCb) then sucCb(true) end
+		if (sucCb) then sucCb(!self:isConnected()) end
 	end,
 	query = function(self, query, sucCb, errCb)
 		if !(self._dbconn) then return false end
@@ -56,15 +71,23 @@ zlib.data:RegisterType("mysqloo", {
 		query = query:gsub("AUTOINCREMENT", "AUTO_INCREMENT")
 
 		local q = self._dbconn:query(query)
-		
+
 		q.onSuccess = function(s, data)
 			if (sucCb) then sucCb(data, s:lastInsert()) end
 		end
 		q.onError = function(s, err, sql)
+			zlib:DebugMessage(string.format("%s %s", self:dbString(), err .. "\n" .. sql))
+			
 			if (errCb) then errCb(err, sql) end
 		end
 		q.onAbort = function(s, sql)
-			if (errCb) then errCb("Query was aborted! [" .. sql .. "]", sql) end
+			local err = "Query was aborted!\n" .. sql
+
+			zlib:DebugMessage(string.format("%s %s", self:dbString(), err))
+
+			if (errCb) then 
+				errCb(err, sql) 
+			end
 		end
 		
 		q:start()

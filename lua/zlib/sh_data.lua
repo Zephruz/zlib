@@ -34,12 +34,17 @@ function zlib.data:LoadType(name, config)
 		return
 	end
 
-	local dmtbl = {}
-	
-	setmetatable(dmtbl, {__index = table.Copy(dmeta)})
+	local dmtbl = {
+		_data = {
+			Name = name or defType, 
+			Config = config or {}
+		}
+	}
 
-	dmtbl:SetName(name or defType)
-	dmtbl:SetConfig(config or {})
+	setmetatable(dmtbl, { __index = dmeta })
+	
+	//dmtbl:SetName(name or defType)
+	//dmtbl:SetConfig(config or {})
 
 	return dmtbl
 end
@@ -50,7 +55,7 @@ end
 	- Returns the data metatable
 ]]
 function zlib.data:GetMetaTable()
-	return (table.Copy(zlib.object:Get("zlib.DataMeta") or self._metatable) || nil)
+	return (zlib.object:Get("zlib.DataMeta") || self._metatable || nil)
 end
 
 --[[
@@ -63,6 +68,8 @@ function zlib.data:GetConnection(id)
 end
 
 --[[
+	** DEPRECIATED **
+	
 	zlib.data:SetupConnection(id [string], dtype [data type meta])
 ]]
 function zlib.data:SetupConnection(id, dtype)
@@ -81,10 +88,14 @@ function zlib.data:CreateConnection(id, dTypeName, config)
 		return
 	end
 
+	// Disconnect from current connection
 	local curCon = self:GetConnection(id)
 
-	if (istable(curCon)) then return curCon end
+	if (istable(curCon) && curCon.Disconnect) then 
+		curCon:Disconnect()
+	end
 
+	// Create connection
 	local dmeta = self:LoadType(dTypeName, config)
 
 	if !(dmeta) then
@@ -94,8 +105,8 @@ function zlib.data:CreateConnection(id, dTypeName, config)
 	end
 
 	self._connections[id] = {}
-	
-	setmetatable(self._connections[id], {__index = table.Copy(dmeta)})
+
+	setmetatable(self._connections[id], { __index = dmeta })
 
 	self._connections[id]:SetName(id)
 
@@ -139,6 +150,7 @@ function dataMeta:Query(query, sucCb, errCb)
 end
 
 zlib.data._metatable = dataMeta
+zlib.data._metatable.__index = dataMeta
 
 --[[
     Includes

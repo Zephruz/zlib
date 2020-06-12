@@ -26,5 +26,3 @@ include("sh_notifs.lua")
 include("sh_language.lua")
 include("sh_addons.lua")
 include("networking/sh_networking.lua")
-
-zlib:Load()

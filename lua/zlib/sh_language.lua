@@ -1,5 +1,5 @@
 --[[
-    MGangs 2 - (SH) Language
+    ZLib 2 - (SH) Language
     Developed by Zephruz
 ]]
 

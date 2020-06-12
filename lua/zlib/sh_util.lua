@@ -13,15 +13,13 @@ zlib.util = (zlib.util or {})
 	- Works for both STID & STID64
 ]]
 function zlib.util:GetPlayerBySteamID(steamid)
-	local ply = (player.GetBySteamID(steamid) || player.GetBySteamID64(steamid))
-
 	if (steamid == "BOT") then
 		for k,v in pairs(player.GetBots()) do
 			return v
 		end
 	end
 
-	return ply
+	return (player.GetBySteamID(steamid) || player.GetBySteamID64(steamid))
 end
 
 --[[
@@ -247,12 +245,60 @@ function zlib.util:SetUserGroup(ply, group)
 end
 
 --[[
+	zlib.util:CleanString(val [string], removeVals [OPTIONAL - table])
+
+	Cleans a string of all potential characters that could cause issues w/(de)serialization
+]]
+function zlib.util:CleanString(val, removeVals)
+	removeVals = (removeVals || { 
+		["\n"] = "", 
+		["\\"] = "",
+		["\""] = ""
+	})
+
+	for k,v in pairs(removeVals) do
+		val = string.Replace(val, k, v)
+	end
+
+	return val
+end
+
+/* SERIALIZERS */
+zlib.util.dataSerializers = {
+	["json"] = {
+		order = 1,
+		isValid = function() return true end,
+		
+		d = function(val)
+			val = util.JSONToTable(val)
+
+			return istable(val), (istable(val) && val || nil)
+		end,
+		s = function(val)
+			return pcall(util.TableToJSON, val)
+		end
+	},
+	["von"] = {
+		order = 2,
+		isValid = function() return von != nil end,
+		d = function(val)
+			if (val:match("^%[.*%]$") != nil || val:match("^{.*}$") != nil) then return false end
+
+			return pcall(von.deserialize, val)
+		end,
+		s = function(val)
+			return pcall(von.serialize, val)
+		end
+	},
+}
+
+--[[
 	zlib.util:Serialize(tbl [table], overrideType [serializer type], suppressErrors [boolean])
 
 	- Serializes a table into a storable string
 ]]
 function zlib.util:Serialize(tbl, overrideType, suppressErrors)
-	if !(istable(tbl)) then return nil end
+	if !(istable(tbl)) then tbl = {} end
 
 	local result, val
 
@@ -282,35 +328,6 @@ function zlib.util:Serialize(tbl, overrideType, suppressErrors)
 
 	return val
 end
-
-/* SERIALIZERS */
-zlib.util.dataSerializers = {
-	["json"] = {
-		order = 1,
-		isValid = function() return true end,
-		d = function(val)
-			val = string.Replace(val, "\n", "")
-			val = util.JSONToTable(val)
-
-			return istable(val), (istable(val) && val || nil)
-		end,
-		s = function(val)
-			return pcall(util.TableToJSON, val)
-		end
-	},
-	["von"] = {
-		order = 2,
-		isValid = function() return von != nil end,
-		d = function(val)
-			if (val:match("^%[.*%]$") != nil || val:match("^{.*}$") != nil) then return false end
-
-			return pcall(von.deserialize, val)
-		end,
-		s = function(val)
-			return pcall(von.serialize, val)
-		end
-	},
-}
 
 --[[
 	zlib.util:Deserialize(str [string], suppressErrors [boolean])
@@ -374,7 +391,7 @@ end
 
 --[[--------------------------
 	ICON SETS
-	THANKS THREEBOWS
+	THANKS THREEBOW
 	http://threebow.com
 ----------------------------]]
 local function downloadFile(filename, url, callback, errorCallback)

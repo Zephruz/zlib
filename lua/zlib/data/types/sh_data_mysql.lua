@@ -55,18 +55,18 @@ zlib.data:RegisterType("mysqloo", {
 	disconnect = function(self, sucCb, errCb)
 		local isConnected = self:isConnected()
 
-		if (self._dbconn) then
+		if (isConnected) then
 			self._dbconn:disconnect(isConnected)
-
-			if (isConnected) then
-				zlib:DebugMessage(self:dbString(), " Disconnected from database")
-			end
+			
+			zlib:DebugMessage(self:dbString(), " Disconnected from database")
 		end
 
-		if (sucCb) then sucCb(!self:isConnected()) end
+		if (sucCb) then 
+			sucCb(!self:isConnected()) 
+		end
 	end,
 	query = function(self, query, sucCb, errCb)
-		if !(self._dbconn) then return false end
+		if !(self:isConnected()) then return false end
 
 		query = query:gsub("AUTOINCREMENT", "AUTO_INCREMENT")
 

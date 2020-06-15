@@ -10,9 +10,9 @@ zlib.http = {}
 
     - Makes an http request for a JSON table
 ]]
-function zlib.http:JSONFetch(url, onSuccess, onFail, header)
-    http.Fetch(url,
-    function(body, len, headers, code)
+function zlib.http:JSONFetch(url, onSuccess, onFail, headers)
+    return self:Request("GET", url, {}, 
+    function(resCode, body, resHeaders)
         local json = zlib.util:Deserialize(body)
 
         if (istable(json)) then
@@ -23,7 +23,7 @@ function zlib.http:JSONFetch(url, onSuccess, onFail, header)
     end,
     function(error)
         if (onFail) then onFail({["error"] = error}) end
-    end, (header or {}))
+    end, (headers || {}))
 end
 
 --[[
@@ -52,12 +52,13 @@ end
 
     - Makes an http request using the specified method, url, and body
 ]]
-function zlib.http:Request(method, url, body, onSuccess, onFail)
+function zlib.http:Request(method, url, body, onSuccess, onFail, headers, params)
     local structure = {
         method = method, 
         url = url, 
         type = "application/json",
-        headers = nil, 
+        headers = headers || {}, 
+        parameters = params,
         body = zlib.util:Serialize(body), 
         success = function(...)
             if (onSuccess) then onSuccess(...) end
@@ -67,7 +68,7 @@ function zlib.http:Request(method, url, body, onSuccess, onFail)
         end,
     }
 
-    HTTP(structure)
+    return HTTP(structure)
 end
 
 --[[

@@ -13,6 +13,7 @@ AddCSLuaFile("sh_cmds.lua")
 AddCSLuaFile("sh_data.lua")
 AddCSLuaFile("sh_notifs.lua")
 AddCSLuaFile("sh_language.lua")
+AddCSLuaFile("sh_addons.lua")
 AddCSLuaFile("networking/sh_networking.lua")
 
 include("sh_util.lua")

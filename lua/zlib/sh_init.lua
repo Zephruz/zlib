@@ -27,3 +27,10 @@ include("sh_notifs.lua")
 include("sh_language.lua")
 include("sh_addons.lua")
 include("networking/sh_networking.lua")
+
+--[[Load Extra Utils]]
+local files, dirs = file.Find("zlib/util/*", "LUA")
+
+for k,v in pairs(files) do
+    zlib.util:IncludeByPath(v, "util/")
+end

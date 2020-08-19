@@ -212,7 +212,7 @@ function discAPI:getUserAuthCode(clientid, callback, nonce)
     zlib.util.discord:getFullRPCURI(
     function(uri)
         if !(uri) then
-            zlib.notifs:Create("Discord application is not open", (self:GetIcon() or false))
+            zlib.notifs:Create("Discord application is not open")
 
             return
         end
@@ -240,9 +240,3 @@ function discAPI:getUserAuthCode(clientid, callback, nonce)
     end, 
     self:GetRPCURI())
 end
-
---[[
-    Includes
-]]
-AddCSLuaFile("discord/cl_discord.lua")
-include("discord/" .. (CLIENT && "cl" || "sv") .. "_discord.lua")

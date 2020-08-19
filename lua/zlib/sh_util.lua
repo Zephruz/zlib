@@ -263,6 +263,31 @@ function zlib.util:CleanString(val, removeVals)
 	return val
 end
 
+--[[
+	zlib.util:UnJavascriptSafe(str [string])
+
+	- Removes escape characters from a string that was escaped using the "JavascriptSafe" method
+		* May not work well strings that contained unsafe characters prior to being escaped
+]]
+local javascript_escape_replacements = {
+	["\\\""] = "\"",
+	["\\\'"] = "\'",
+	["\\"] = "",
+	["\\\\"] = "\\"
+}
+
+function zlib.util:UnJavascriptSafe(str)
+	for k,v in pairs(javascript_escape_replacements) do
+		str = str:gsub( k , v )
+	end
+
+	-- U+2028 and U+2029 are treated as line separators in JavaScript, handle separately as they aren't single-byte
+	str = str:gsub( "\\\226\128\168", "\226\128\168" )
+	str = str:gsub( "\\\226\128\169", "\226\128\169" )
+
+	return str
+end
+
 /* SERIALIZERS */
 zlib.util.dataSerializers = {
 	["json"] = {
@@ -270,6 +295,12 @@ zlib.util.dataSerializers = {
 		isValid = function() return true end,
 		
 		d = function(val)
+			if (string.find(val, "\\\"") != nil) then // Escaped (w/JavascriptSafe method)
+				val = zlib.util:UnJavascriptSafe(str)
+			elseif (string.find(val, "table: ") != nil) then // Invalid data; somehow a table string was stored
+				return true, {}
+			end
+
 			val = util.JSONToTable(val)
 
 			return istable(val), (istable(val) && val || nil)
@@ -320,7 +351,8 @@ function zlib.util:Serialize(tbl, overrideType, suppressErrors)
 
 	if !(result) then 
 		if !(suppressErrors) then
-			zlib:ConsoleMessage("Unable to serialize table! (" .. table.ToString(tbl, "TableToSerialize") .. ")")
+			//zlib:ConsoleMessage("Unable to serialize table! (" .. table.ToString(tbl, "TableToSerialize") .. ")")
+			// TODO: Log
 		end
 
 		return nil

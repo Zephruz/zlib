@@ -89,28 +89,29 @@ end
 ]]
 local fCacheMeta, fCacheMetaID = zlib.object:Create("zlib.CacheMeta")
 
-zlib.cache._metatable = fCacheMeta
+fCacheMeta:setData("Name", "NIL", {shouldSave = false})
+fCacheMeta:setData("Description", "NIL", {shouldSave = false})
+fCacheMeta:setData("ClearOnReload", false, {shouldSave = false})
+fCacheMeta:setData("Entries", {}, {shouldSave = false})
 
-local cacheMeta = zlib.cache._metatable
-
-function cacheMeta:__tostring()
+function fCacheMeta:__tostring()
 	local cName, cEntries = (self:getData("Name") || nil), (self:getData("Entries") || {})
 
 	return ("cache[" .. (cName || "NIL") .. "] (Total entries/values: " .. (table.Count(cEntries) || 0) .. ")")
 end
 
-function cacheMeta:__eq(c1, c2)
+function fCacheMeta:__eq(c1, c2)
 	local c1Name = (c1 && c1.getData && c1:getData("Name") || nil)
 	local c2Name = (c2 && c2.getData && c2:getData("Name") || nil)
 
 	return (c1Name && c2Name && c1Name == c2Name)
 end
 
-function cacheMeta:__concat()
+function fCacheMeta:__concat()
 	return "Cache(" .. (self:getData("Name") or "NIL") .. ")"
 end
 
-function cacheMeta:addEntry(data, id)
+function fCacheMeta:addEntry(data, id)
 	local entries = self:GetEntries()
 
 	if (id) then
@@ -124,11 +125,11 @@ function cacheMeta:addEntry(data, id)
 	return id, self:getEntry(id)
 end
 
-function cacheMeta:getEntry(id)
+function fCacheMeta:getEntry(id)
 	return self:GetEntries()[id]
 end
 
-function cacheMeta:removeEntry(id)
+function fCacheMeta:removeEntry(id)
 	local entries = self:GetEntries()
 	local result = self:getEntry(id)
 
@@ -141,26 +142,35 @@ function cacheMeta:removeEntry(id)
 	return result
 end
 
-function cacheMeta:sendToPlayer(ply, modifyData, sendAmt)
+function fCacheMeta:sendToPlayer(ply, modifyData, sendAmt)
+	if (istable(ply) && table.Count(ply) <= 0) then
+		return
+	end
+
 	local entries = self:GetEntries()
 
 	if (modifyData) then
 		entries = modifyData(entries)
 	end
 
+	zlib:DebugMessage(string.format("Sending cache %s to %s (%s total entries, %s per post)", self:GetName(), ply, table.Count(entries), sendAmt || 2))
+
+	if (istable(ply)) then
+		for k,v in pairs(ply) do
+			zlib:DebugMessage(v:Name(), v:SteamID(), tostring(v:GetGang()))
+		end
+	end
+
 	netPoint:SendPayload("zlib.cache.Receive", ply, entries, (sendAmt || 2), self:GetName())
 end
 
-function cacheMeta:onPlayerReceive(data) end -- called when a player receives the cache
+function fCacheMeta:onPlayerReceive(data) end -- called when a player receives the cache
 
-function cacheMeta:clear()
+function fCacheMeta:clear()
 	self:SetEntries({})
 end
 
-cacheMeta:setData("Name", "NIL", {shouldSave = false})
-cacheMeta:setData("Description", "NIL", {shouldSave = false})
-cacheMeta:setData("ClearOnReload", false, {shouldSave = false})
-cacheMeta:setData("Entries", {}, {shouldSave = false})
+zlib.cache._metatable = fCacheMeta
 
 --[[
 	Networking

@@ -18,7 +18,7 @@ setmetatable(zlib.object, {
 	- Returns the object metatable
 ]]
 function zlib.object:GetMetaTable()
-	return (self._metatable or {})
+	return table.Copy(self._metatable or {})
 end
 
 --[[
@@ -31,7 +31,7 @@ function zlib.object:SetMetatable(name, tbl)
 
 	if !(objMeta) then return end
 
-	setmetatable(tbl, { __index = table.Copy(objMeta) })
+	setmetatable(tbl, objMeta)
 
 	return tbl
 end
@@ -47,15 +47,17 @@ function zlib.object:Create(name, data)
 
 	self._cache[id] = {}
 
-	setmetatable(self._cache[id], { __index = table.Copy(self:GetMetaTable()) })
-
-	self._cache[id].__metatable = name
+	// set metatable
+	setmetatable(self._cache[id], self:GetMetaTable())
 
 	if (data) then
 		for k,v in pairs(data) do
 			self._cache[id]:setData(k,v)
 		end
 	end
+
+	// set index to self for inheritance
+	self._cache[id].__index = self._cache[id]
 
 	return self._cache[id], id
 end
@@ -95,7 +97,7 @@ end
 	- Returns an object/metatable by cached name (key) OR nil if not found
 ]]
 function zlib.object:Get(name)
-	return (self._cache[name] or nil)
+	return table.Copy(self._cache[name] or {})
 end
 
 --[[

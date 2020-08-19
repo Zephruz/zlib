@@ -4,8 +4,8 @@
 ]]
 
 zlib = (zlib or {})
-zlib._version = "v1.3.2"
-zlib._debugMode = true
+zlib._version = "v1.3.3"
+zlib._debugMode = false
 zlib._upToDate = false
 zlib._repositoryParameters = {
     version = "tag_name",
@@ -28,7 +28,7 @@ function zlib:DebugMessage(...)
 end
 
 function zlib:GetRepositoryInfo(cb)
-    return (
+    return 
         self.http:JSONFetch("https://api.github.com/repos/zephruz/zlib/releases/latest", 
         function(body)
             local data = {}
@@ -44,7 +44,7 @@ function zlib:GetRepositoryInfo(cb)
         function(data)
             if (cb) then cb(false) end
         end) == true
-    )
+    
 end
 
 function zlib:Load()
@@ -55,33 +55,35 @@ function zlib:Load()
 
     timer.Create("zlib_fetch_repo", 5, 1, 
     function()
-        self:ConsoleMessage("Fetching repository information to compare versions...")
+        if (SERVER) then
+            self:ConsoleMessage("Fetching repository information to compare versions...")
 
-        local repoResult = self:GetRepositoryInfo(
-            function(data)
-                if !(data) then return end
-    
-                local version, url
-                version = data[self._repositoryParameters.version]
-                url = data[self._repositoryParameters.downloadUrl]
-    
-                if (version != nil) then
-                    if (version != self._version) then
-                        url = (url != nil && url || "https://github.com/zephruz/zlib/releases")
-        
-                        self:ConsoleMessage(Color(255,125,25), string.format("ZLib is not up to date (yours: %s | new: %s), please download the latest version from %s.", zlib._version, version, url))
+            local repoResult = self:GetRepositoryInfo(
+                function(data)
+                    if !(data) then return end
+
+                    local version, url
+                    version = data[self._repositoryParameters.version]
+                    url = data[self._repositoryParameters.downloadUrl]
+
+                    if (version != nil) then
+                        if (version != self._version) then
+                            url = (url != nil && url || "https://github.com/zephruz/zlib/releases")
+
+                            self:ConsoleMessage(Color(255,125,25), string.format("ZLib is not up to date (yours: %s | new: %s), please download the latest version from %s.", zlib._version, version, url))
+                        else
+                            self._upToDate = true
+                            self:ConsoleMessage(string.format("[%s] ZLib is up to date!", self._version))
+                        end
                     else
-                        self._upToDate = true
-                        self:ConsoleMessage(string.format("[%s] ZLib is up to date!", self._version))
+                        self:ConsoleMessage("Unable to determine zlib verison, please verify you're up to date here: https://github.com/zephruz/zlib/releases")
                     end
-                else
-                    self:ConsoleMessage("Unable to determine zlib verison, please verify you're up to date here: https://github.com/zephruz/zlib/releases")
                 end
+            ) 
+        
+            if !(repoResult) then
+                self:DebugMessage("Failed to fetch ZLib repository info!")
             end
-        )    
-    
-        if !(repoResult) then
-            self:DebugMessage("Failed to fetch ZLib repository info!")
         end
     end)
 

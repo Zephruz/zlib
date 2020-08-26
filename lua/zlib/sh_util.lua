@@ -303,7 +303,7 @@ zlib.util.dataSerializers = {
 		isValid = function() return true end,
 		
 		d = function(val)
-			if (string.StartWith(val, "table: ") != nil) then // Invalid data; somehow a table string was stored
+			if (string.StartWith(val, "table: ")) then // Invalid data; somehow a table string was stored
 				return true, {}
 			end
 

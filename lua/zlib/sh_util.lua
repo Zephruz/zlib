@@ -277,7 +277,15 @@ local javascript_escape_replacements = {
 }
 
 function zlib.util:UnJavascriptSafe(str)
+	if (str == nil) then return "" end
+
+	local strCopy = str
+
 	for k,v in pairs(javascript_escape_replacements) do
+		if (str == nil) then 
+			return strCopy
+		end
+
 		str = str:gsub( k , v )
 	end
 
@@ -295,15 +303,17 @@ zlib.util.dataSerializers = {
 		isValid = function() return true end,
 		
 		d = function(val)
-			if (string.find(val, "\\\"") != nil) then // Escaped (w/JavascriptSafe method)
-				val = zlib.util:UnJavascriptSafe(str)
-			elseif (string.find(val, "table: ") != nil) then // Invalid data; somehow a table string was stored
+			if (string.StartWith(val, "table: ") != nil) then // Invalid data; somehow a table string was stored
 				return true, {}
 			end
 
+			/*if (string.find(val, "\\\"") != nil || string.find(val, "\\") != nil) then // Escaped (w/JavascriptSafe method)
+				val = zlib.util:UnJavascriptSafe(str)
+			else*/
+
 			val = util.JSONToTable(val)
 
-			return istable(val), (istable(val) && val || nil)
+			return istable(val), (istable(val) && val || {})
 		end,
 		s = function(val)
 			return pcall(util.TableToJSON, val)
@@ -350,9 +360,8 @@ function zlib.util:Serialize(tbl, overrideType, suppressErrors)
 	end
 
 	if !(result) then 
-		if !(suppressErrors) then
-			//zlib:ConsoleMessage("Unable to serialize table! (" .. table.ToString(tbl, "TableToSerialize") .. ")")
-			// TODO: Log
+		if (!suppressErrors && zlib._debugMode) then
+			zlib:ConsoleMessage("Unable to serialize table! (" .. table.ToString(tbl, "TableToSerialize") .. ")")
 		end
 
 		return nil

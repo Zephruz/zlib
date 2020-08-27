@@ -18,7 +18,7 @@ setmetatable(zlib.object, {
 	- Returns the object metatable
 ]]
 function zlib.object:GetMetaTable()
-	return table.Copy(self._metatable or {})
+	return (self._metatable or {})
 end
 
 --[[
@@ -31,7 +31,7 @@ function zlib.object:SetMetatable(name, tbl)
 
 	if !(objMeta) then return end
 
-	setmetatable(tbl, objMeta)
+	setmetatable(tbl, { __index = table.Copy(objMeta) })
 
 	return tbl
 end
@@ -48,7 +48,7 @@ function zlib.object:Create(name, data)
 	self._cache[id] = {}
 
 	// set metatable
-	setmetatable(self._cache[id], self:GetMetaTable())
+	setmetatable(self._cache[id], { __index = table.Copy(self:GetMetaTable()) })
 
 	if (data) then
 		for k,v in pairs(data) do
@@ -97,7 +97,7 @@ end
 	- Returns an object/metatable by cached name (key) OR nil if not found
 ]]
 function zlib.object:Get(name)
-	return table.Copy(self._cache[name] or {})
+	return (self._cache[name] or {})
 end
 
 --[[
@@ -136,7 +136,7 @@ function objMeta:setData(name, val, params)
 	end
 
 	-- Check if this data exists, if so, set data and return
-	if (self:getData(name) != nil && isfunction(setter)) then
+	if (self:getData(name) != nil && isfunction(getter) && isfunction(setter)) then
 		return setter(self, val)
 	end
 
@@ -257,7 +257,7 @@ function objMeta:saveData(callback)
 		end
 		
 		oData = zlib.util:Serialize(oData || {}) || ""
-	else
+	elseif (!isstring(oData)) then
 		-- Turn whatever we have into a string
 		oData = tostring(oData)
 	end

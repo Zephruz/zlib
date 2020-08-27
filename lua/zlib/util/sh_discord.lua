@@ -200,7 +200,7 @@ function discAPI:getUserToken(ply, authCode, callback)
     function(errData)
         local errMsg = (errData != nil && errData.error)
 
-        callback(false, "Failed to retreive user token. " .. (errData || "Unknown error"))
+        callback(false, "Failed to retreive user token. " .. (errMsg || "Unknown error"))
     end)
 
     return true

@@ -4,7 +4,7 @@
 ]]
 
 zlib = (zlib or {})
-zlib._version = "v1.3.3a"
+zlib._version = "v1.3.4"
 zlib._debugMode = false
 zlib._upToDate = false
 zlib._repositoryParameters = {

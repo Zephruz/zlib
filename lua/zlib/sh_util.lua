@@ -233,12 +233,22 @@ end
 function zlib.util:SetUserGroup(ply, group)
 	if (CLIENT) then return false end
 
+	local oldGroup = ply:GetUserGroup()
+
+	// Set group/rank
 	if serverguard then
         serverguard.player:SetRank(ply, group)
-    elseif xAdmin then
-        xAdmin.SetUserRank(ply, group)
-    else
-        ply:SetUserGroup(group)
+	elseif (xAdmin && xAdmin.SetUserRank != nil) then
+		xAdmin.SetUserRank(ply, group)
+	else
+		ply:SetUserGroup(group)
+	end
+
+	// CAMI
+	if CAMI then
+		CAMI.SignalUserGroupChanged(ply, oldGroup, group, "zlib")
+	else
+		hook.Call("CAMI.PlayerUsergroupChanged", nil, ply, oldGroup, group, "zlib")
 	end
 	
 	return true

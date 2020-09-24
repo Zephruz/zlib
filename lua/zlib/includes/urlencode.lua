@@ -1,5 +1,7 @@
 --[[
     Snippet pulled from: https://gist.github.com/liukun/f9ce7d6d14fa45fe9b924a3eed5c3d99
+
+    * Modified URLEncode method to escape correct characters
 ]]
 
 local char_to_hex = function(c)
@@ -24,7 +26,7 @@ function http.URLEncode(url)
     return
   end
   url = url:gsub("\n", "\r\n")
-  url = url:gsub("([^%w ])", char_to_hex)
+  url = url:gsub("([^%w _ %- . ~])", char_to_hex)
   url = url:gsub(" ", "+")
   return url
 end

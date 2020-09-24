@@ -253,6 +253,11 @@ function objMeta:saveData(callback)
 		for k,v in pairs(oData) do
 			local params = self:getParameter(k)
 
+			// escape string
+			if (isstring(v)) then
+				v = string.JavascriptSafe(v)
+			end
+
 			oData[k] = (params.shouldSave != false && v || nil)
 		end
 		
@@ -265,7 +270,6 @@ function objMeta:saveData(callback)
 	-- On Save
 	if !(oData) then return false end
 
-	oData = string.JavascriptSafe(oData) // mysql doesn't like serialized data
 	oData = string.format("'%s'", oData) // encapsulate
 	
 	if (self.onSave) then self:onSave(oData, callback) end

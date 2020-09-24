@@ -431,9 +431,11 @@ end
 function zlib.util:SetEntityData(ent, data)
     for k,v in pairs(data) do
         local setFunc = ent["Set" .. k]
-
+		
         if (setFunc) then
-            setFunc(ent, v)
+			setFunc(ent, v)
+		else
+			ent[k] = v
         end
     end
 

@@ -55,7 +55,7 @@ if (CLIENT) then
 
         local newNotif = {}
         newNotif.msg = msg
-        newNotif.icon = (icon && Material(icon) || false)
+        newNotif.icon = (icon && Material(icon, "noclamp smooth") || false)
         newNotif.delAt = (os.time() + self.length)
         newNotif.curPos = {x = -200, y = self.position.y}
         newNotif.size = {w = self.size.w, h = self.size.h}

@@ -240,6 +240,8 @@ function zlib.util:SetUserGroup(ply, group)
         serverguard.player:SetRank(ply, group)
 	elseif (xAdmin && xAdmin.SetUserRank != nil) then
 		xAdmin.SetUserRank(ply, group)
+	elseif (ulx) then
+		RunConsoleCommand("ulx", "adduserid", ply:SteamID(), group)
 	else
 		ply:SetUserGroup(group)
 	end

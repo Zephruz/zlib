@@ -157,7 +157,7 @@ function fCacheMeta:sendToPlayer(ply, modifyData, sendAmt)
 
 	if (istable(ply)) then
 		for k,v in pairs(ply) do
-			zlib:DebugMessage(v:Name(), v:SteamID(), tostring(v:GetGang()))
+			zlib:DebugMessage(v:Name(), v:SteamID())
 		end
 	end
 

@@ -20,7 +20,7 @@ zlib.data:RegisterType("sqlite", {
 				lastID = sql.Query("SELECT last_insert_rowid()")
 				lastID = (lastID && tonumber(lastID[1]["last_insert_rowid()"]) || 0)
 
-				for _,row in pairs(query) do
+				/*for _,row in pairs(query) do
 					for k,v in pairs(row) do
 						local vtonum = tonumber(v)
 						
@@ -28,7 +28,7 @@ zlib.data:RegisterType("sqlite", {
 							query[_][k] = vtonum
 						end
 					end
-				end
+				end*/
 
 				sucCb(query, lastID)
 			end

@@ -19,16 +19,21 @@ zlib.data:RegisterType("sqlite", {
 			if (sucCb) then
 				lastID = sql.Query("SELECT last_insert_rowid()")
 				lastID = (lastID && tonumber(lastID[1]["last_insert_rowid()"]) || 0)
-
-				/*for _,row in pairs(query) do
+				
+				for _,row in pairs(query) do
 					for k,v in pairs(row) do
+						if !(isstring(v)) then
+							continue
+						end 
+
 						local vtonum = tonumber(v)
 						
-						if (vtonum) then
+						-- only convert numbers smaller than 17 digits as steamid64s are converted to integers...
+						if (vtonum && string.len(v) < 17) then
 							query[_][k] = vtonum
 						end
 					end
-				end*/
+				end
 
 				sucCb(query, lastID)
 			end

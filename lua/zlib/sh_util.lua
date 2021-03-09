@@ -236,11 +236,19 @@ function zlib.util:SetUserGroup(ply, group)
 	local oldGroup = ply:GetUserGroup()
 
 	// Set group/rank
+	if sam then
+		ply:sam_set_rank(group)
+	end
+	
 	if serverguard then
-        serverguard.player:SetRank(ply, group)
-	elseif (xAdmin && xAdmin.SetUserRank != nil) then
+        	serverguard.player:SetRank(ply, group)
+	end
+	
+	if (xAdmin && xAdmin.SetUserRank != nil) then
 		xAdmin.SetUserRank(ply, group)
-	elseif (ulx) then
+	end
+	
+	if ulx then
 		RunConsoleCommand("ulx", "adduserid", ply:SteamID(), group)
 	else
 		ply:SetUserGroup(group)
